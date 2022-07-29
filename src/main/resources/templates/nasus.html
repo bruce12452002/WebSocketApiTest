@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Spring Boot WebSocket Broadcast</title>
+
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">瀏覽器不支援 WebSocket</h2></noscript>
+<div>
+    <div>
+        <button id="connect" onclick="connect();">開始連 WebSocket</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">WebSocket 斷線</button>
+    </div>
+    <div id="conversationDiv">
+        <label>输入你要傳送的訊息</label><input type="text" id="name"/>
+        <button id="sendName" onclick="sendName();">送出</button>
+        <p id="response"></p>
+    </div>
+    <div id="helloworldmessage"></div>
+</div>
+<script th:src="@{sockjs.min.js}"></script>
+<script th:src="@{stomp.min.js}"></script>
+<script th:src="@{jquery.js}"></script>
+<script type="text/javascript">
+    var stompClient = null;
+
+    function setConnected(connected) {
+        document.getElementById('connect').disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+        $('#response').html();
+    }
+
+    var ws;
+    function connect() {
+            ws = new WebSocket('ws://localhost:8080/myWebSocketHandler');
+            ws.onmessage = function(data) {
+                helloWorld(data.data);
+            }
+            setConnected(true);
+    }
+
+
+    function disconnect() {
+        if (ws != null) {
+            ws.close();
+        }
+        setConnected(false);
+        console.log("Websocket is in disconnected state");
+    }
+
+    function sendName() {
+        var name = $('#name').val();
+        ws.send(name);
+    }
+
+    function helloWorld(message) {
+        $("#helloworldmessage").append(" " + message);
+    }
+
+    function showResponse(message) {
+        // 接收返回的消息
+        var response = $("#response");
+        response.html(message);
+    }
+
+</script>
+</body>
+</html>
